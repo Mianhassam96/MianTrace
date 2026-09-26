@@ -1,12 +1,18 @@
 import { useEffect, useState } from 'react'
 
-export function useDarkMode() {
-  const [isDark, setIsDark] = useState<boolean>(() => {
-    // Check localStorage first, then system preference
+function getInitialDark(): boolean {
+  try {
     const stored = localStorage.getItem('miantrace-theme')
-    if (stored) return stored === 'dark'
+    if (stored === 'dark') return true
+    if (stored === 'light') return false
     return window.matchMedia('(prefers-color-scheme: dark)').matches
-  })
+  } catch {
+    return false
+  }
+}
+
+export function useDarkMode() {
+  const [isDark, setIsDark] = useState<boolean>(getInitialDark)
 
   useEffect(() => {
     const root = document.documentElement
@@ -15,7 +21,11 @@ export function useDarkMode() {
     } else {
       root.classList.remove('dark')
     }
-    localStorage.setItem('miantrace-theme', isDark ? 'dark' : 'light')
+    try {
+      localStorage.setItem('miantrace-theme', isDark ? 'dark' : 'light')
+    } catch {
+      // localStorage unavailable — silently ignore
+    }
   }, [isDark])
 
   const toggle = () => setIsDark(prev => !prev)

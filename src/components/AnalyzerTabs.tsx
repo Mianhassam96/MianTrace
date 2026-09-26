@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import type { AnalyzerTab } from '../types'
 
 interface AnalyzerTabsProps {
@@ -5,7 +6,7 @@ interface AnalyzerTabsProps {
   onChange: (tab: AnalyzerTab) => void
 }
 
-const TABS: { id: AnalyzerTab; label: string; icon: React.ReactNode }[] = [
+const TABS: { id: AnalyzerTab; label: string; icon: ReactNode }[] = [
   {
     id: 'text',
     label: 'Text',

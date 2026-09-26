@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+/* Enable class-based dark mode */
+@variant dark (&:where(.dark, .dark *));
+
 /* MianTrace base styles */
 :root {
   --color-brand: #6366f1;

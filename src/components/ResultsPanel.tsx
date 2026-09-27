@@ -5,6 +5,7 @@ import { ExplanationPanel } from './ExplanationPanel'
 import { SentenceAnalysisPanel } from './SentenceAnalysisPanel'
 import { ImprovementsPanel } from './ImprovementsPanel'
 import { WebsiteResultsHeader } from './WebsiteResultsHeader'
+import { CopyReportButton } from './CopyReportButton'
 import type { WorkerSuccessResponse } from '../api/worker-client'
 
 interface ResultsPanelProps {
@@ -42,8 +43,10 @@ export function ResultsPanel({ result, onReset }: ResultsPanelProps) {
         <div className="flex-1 h-px bg-slate-100 dark:bg-slate-800"/>
       </div>
 
-      {/* Reset */}
-      <div className="flex justify-center">
+      {/* Actions row */}
+      <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+        <CopyReportButton result={result}/>
+
         <button
           onClick={onReset}
           className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-colors"

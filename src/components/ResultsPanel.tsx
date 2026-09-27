@@ -3,6 +3,7 @@ import { ScoreCard } from './ScoreCard'
 import { SignalsPanel } from './SignalsPanel'
 import { ExplanationPanel } from './ExplanationPanel'
 import { SentenceAnalysisPanel } from './SentenceAnalysisPanel'
+import { ImprovementsPanel } from './ImprovementsPanel'
 
 interface ResultsPanelProps {
   result: AnalysisResult
@@ -37,6 +38,9 @@ export function ResultsPanel({ result, onReset }: ResultsPanelProps) {
       {result.sentenceAnalyses.length > 0 && (
         <SentenceAnalysisPanel sentences={result.sentenceAnalyses} />
       )}
+
+      {/* Improvement suggestions */}
+      <ImprovementsPanel signals={result.signals} />
 
       {/* New analysis button */}
       <div className="flex justify-center pt-2">

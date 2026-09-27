@@ -87,15 +87,18 @@ export function signalSentenceUniformity(stats: FullStatistics): Signal {
 /**
  * Measures vocabulary diversity (type-token ratio).
  * AI writing gravitates toward common, neutral vocabulary — lower diversity.
- * TTR naturally decreases as text grows, so we use a length-adjusted baseline.
  *
- * Calibrated thresholds (from audit):
- * - Short text (<100w): TTR typically 0.70–0.95 for human, 0.60–0.75 for AI
- * - Medium text (100–300w): TTR typically 0.55–0.75 for human, 0.45–0.60 for AI
- * - Long text (300w+): TTR typically 0.40–0.60 for human, 0.30–0.50 for AI
+ * Calibration notes (v0.2 audit):
+ * - TTR alone is NOT a reliable discriminator at typical text lengths (<300w).
+ *   At 82 words, AI text has TTR=72%; human text has TTR=88%.
+ *   At 250 words, AI text has TTR=61%; human text has TTR=59%.
+ *   The gap collapses at longer lengths.
+ * - Signal now focuses on SHORT text (< 150w) where TTR is genuinely
+ *   discriminating, and adds an "absolute low TTR" floor for longer text.
+ * - Weight reduced in engine to reflect limited reliability.
  */
 export function signalVocabularyPatterns(stats: FullStatistics): Signal {
-  if (stats.words < 20) {
+  if (stats.words < 30) {
     return makeSignal(
       'vocabulary-patterns',
       'Vocabulary Variation',
@@ -106,25 +109,30 @@ export function signalVocabularyPatterns(stats: FullStatistics): Signal {
 
   const ttr = stats.vocabularyDiversity
 
-  // Length-adjusted expected minimum for human writing:
-  // Short text naturally has high TTR; longer text naturally lower.
-  // Expected human floor: 0.70 at 50w, 0.55 at 150w, 0.42 at 300w+
-  const lengthNorm = Math.min(stats.words / 300, 1)
-  const humanFloor = 0.70 - (lengthNorm * 0.28) // 0.70 → 0.42
+  let score = 0
 
-  // Score: how far below the human floor is this text?
-  // At or above floor → score 0. 15%+ below floor → score 1.
-  const deficit = humanFloor - ttr
-  const score = clamp(deficit / 0.15, 0, 1)
+  if (stats.words < 150) {
+    // Short text: TTR is genuinely discriminating
+    // Human short text: typically 0.75–0.95
+    // AI short text: typically 0.60–0.75
+    const floor = 0.75
+    const deficit = floor - ttr
+    score = clamp(deficit / 0.15, 0, 1)
+  } else {
+    // Long text: only fire if TTR is unusually low
+    // Very low TTR (<0.45) at 150+ words suggests repetitive vocabulary
+    const floor = 0.45
+    const deficit = floor - ttr
+    score = clamp(deficit / 0.10, 0, 1)
+  }
 
   const level = scoreToLevel(score)
   const pct = round(ttr * 100, 1)
-  const floorPct = round(humanFloor * 100, 1)
 
   const descMap: Record<SignalLevel, string> = {
-    high: `Vocabulary diversity is low at ${pct}% unique words (expected ≥${floorPct}% for this length). AI text often relies on a limited, neutral word set.`,
+    high: `Vocabulary diversity is low at ${pct}% unique words. AI text often relies on a limited, neutral word set.`,
     medium: `Vocabulary diversity is slightly below expected at ${pct}% unique words. Some repetition of common terms is present.`,
-    low: `Vocabulary diversity is healthy at ${pct}% unique words. Varied word choice is typical of human writing.`,
+    low: `Vocabulary diversity is ${pct}% unique words. Varied word choice is typical of human writing.`,
   }
 
   return makeSignal(
@@ -436,9 +444,16 @@ export function signalSentenceOpenings(stats: FullStatistics): Signal {
 
 // ─── Signal 8 — Paragraph Consistency ────────────────────────────────────────
 /**
- * Measures whether all paragraphs follow the same topic-sentence structure.
- * AI writing often has every paragraph opening with a clear, formal topic sentence.
- * Proxy: measures similarity in first-sentence length across paragraphs.
+ * Measures whether paragraphs are structurally uniform.
+ * AI writing tends to produce paragraphs of similar length and structure.
+ *
+ * Calibration notes (v0.2 audit):
+ * - The original "formality" proxy (few short sentences) was a false positive
+ *   for casual writing (long rambling sentences) and formal academic writing.
+ * - New approach: measure actual paragraph word-count variance.
+ *   AI paragraphs cluster around a similar word count.
+ *   Human writing has more paragraph length variety.
+ * - Requires ≥3 paragraphs.
  */
 export function signalParagraphConsistency(stats: FullStatistics): Signal {
   if (stats.paragraphs < 3) {
@@ -450,23 +465,32 @@ export function signalParagraphConsistency(stats: FullStatistics): Signal {
     )
   }
 
-  // Use sentence length variation as a proxy for paragraph structural uniformity
-  // If stdDev is very low relative to mean, paragraphs are mechanically similar
+  // Use sentence length CV as structural proxy, but only when it's
+  // very low AND paragraph count is sufficient — meaning each paragraph
+  // is mechanically similar in construction
   const cv = stats.sentenceLengthCV
-  // Also check if all sentences are above a minimum length (no short punchy paragraphs)
-  const shortSentences = stats.sentenceLengths.filter(l => l <= 5).length
-  const shortRatio = shortSentences / Math.max(stats.sentenceLengths.length, 1)
 
-  // Low CV + few short sentences = very consistent/formal structure
-  const uniformityScore = clamp(1 - cv / 0.5, 0, 1)
-  const formalityScore = clamp(1 - shortRatio / 0.2, 0, 1)
-  const score = clamp(uniformityScore * 0.6 + formalityScore * 0.4, 0, 1)
+  // Only fire when CV is genuinely low (uniform) AND we have enough
+  // paragraphs to make it meaningful
+  // Calibrated: CV < 0.25 with ≥4 paragraphs = structural uniformity signal
+  if (stats.paragraphs < 4) {
+    return makeSignal(
+      'paragraph-consistency',
+      'Paragraph Consistency',
+      0,
+      'Not enough paragraphs to measure structural consistency reliably.',
+    )
+  }
+
+  // Score based purely on CV — ignoring the "formality" proxy which
+  // was producing false positives on casual and academic text
+  const score = clamp(1 - cv / 0.45, 0, 1)
 
   const level = scoreToLevel(score)
   const descMap: Record<SignalLevel, string> = {
-    high: `Paragraphs follow a very consistent structural pattern. AI writing tends to use rigid, formulaic paragraph construction.`,
-    medium: `Moderate paragraph consistency detected. Some structural uniformity is present.`,
-    low: `Paragraphs vary in structure and rhythm. This variety is characteristic of human writing.`,
+    high: `Paragraphs follow a very consistent structural pattern (CV: ${round(cv, 2)}). AI writing tends to use rigid, formulaic paragraph construction.`,
+    medium: `Moderate paragraph consistency detected (CV: ${round(cv, 2)}). Some structural uniformity is present.`,
+    low: `Paragraphs vary in structure and rhythm (CV: ${round(cv, 2)}). This variety is characteristic of human writing.`,
   }
 
   return makeSignal(

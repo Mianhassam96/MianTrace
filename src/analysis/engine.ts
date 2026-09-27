@@ -16,18 +16,23 @@ import { analyzeSentences } from './sentence-analysis'
 import { clamp, round } from './text-utils'
 
 // ─── Signal weights ───────────────────────────────────────────────────────────
-// Calibrated from audit: transition + generic phrasing are the most reliable
-// signals for AI-generated text. Sentence uniformity reduced to prevent
-// over-firing on short human text.
+// Calibrated from audit v2 (8 samples):
+// - Transitions + generic phrasing: perfect discriminators (Δ=+1.0) — highest weight
+// - Sentence uniformity: excellent (Δ=+0.69) — keep weight
+// - Structural predictability: good (Δ=+0.28)
+// - Sentence openings: good (Δ=+0.43)
+// - Vocabulary: weak but valid for short text (Δ=+0.09) — reduced weight
+// - Phrase repetition: anti-discriminates (fires MORE on human Δ=-0.06) — heavily reduced
+// - Paragraph consistency: weak (Δ=+0.14) — reduced
 const SIGNAL_WEIGHTS: Record<string, number> = {
-  'sentence-uniformity':        1.0,  // reduced — over-fires on short text
-  'vocabulary-patterns':        1.5,  // reliable when text is long enough
-  'phrase-repetition':          1.1,
-  'structural-predictability':  0.9,
-  'transition-patterns':        1.6,  // increased — very reliable AI signal
-  'generic-phrasing':           1.6,  // increased — very reliable AI signal
-  'sentence-openings':          0.9,
-  'paragraph-consistency':      0.8,
+  'sentence-uniformity':        1.1,
+  'vocabulary-patterns':        0.8,  // weak — reduced
+  'phrase-repetition':          0.4,  // anti-discriminates — heavily reduced
+  'structural-predictability':  1.0,
+  'transition-patterns':        1.7,  // perfect discriminator
+  'generic-phrasing':           1.7,  // perfect discriminator
+  'sentence-openings':          1.0,
+  'paragraph-consistency':      0.6,  // weak — reduced
 }
 
 // ─── Confidence calculator ────────────────────────────────────────────────────

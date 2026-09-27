@@ -5,7 +5,8 @@
  */
 
 // Worker URL — set via env variable at build time, falls back to placeholder
-const WORKER_URL = import.meta.env.VITE_WORKER_URL as string | undefined
+const WORKER_URL = (import.meta.env.VITE_WORKER_URL as string | undefined)
+  ?? 'https://miantrace.mianhassam96.workers.dev'
 
 export interface WorkerSuccessResponse {
   url: string
@@ -34,7 +35,7 @@ export async function fetchWebsiteContent(url: string): Promise<WorkerResult> {
   if (!WORKER_URL) {
     return {
       ok: false,
-      error: 'Website analysis is not yet configured. The worker URL is missing. Please deploy the Cloudflare Worker and set VITE_WORKER_URL.',
+      error: 'Website analysis service is not configured.',
       code: 'WORKER_NOT_CONFIGURED',
     }
   }

@@ -2,6 +2,7 @@ import type { AnalysisResult } from '../types'
 import { ScoreCard } from './ScoreCard'
 import { SignalsPanel } from './SignalsPanel'
 import { ExplanationPanel } from './ExplanationPanel'
+import { SentenceAnalysisPanel } from './SentenceAnalysisPanel'
 
 interface ResultsPanelProps {
   result: AnalysisResult
@@ -31,6 +32,11 @@ export function ResultsPanel({ result, onReset }: ResultsPanelProps) {
 
       {/* Signal breakdown */}
       <SignalsPanel signals={result.signals} />
+
+      {/* Sentence-level analysis */}
+      {result.sentenceAnalyses.length > 0 && (
+        <SentenceAnalysisPanel sentences={result.sentenceAnalyses} />
+      )}
 
       {/* New analysis button */}
       <div className="flex justify-center pt-2">

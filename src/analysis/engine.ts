@@ -12,6 +12,7 @@
 import type { AnalysisResult, ConfidenceLevel, Signal } from '../types'
 import type { FullStatistics } from './statistics'
 import { ALL_SIGNAL_DETECTORS } from './signals'
+import { analyzeSentences } from './sentence-analysis'
 import { clamp, round } from './text-utils'
 
 // ─── Signal weights ───────────────────────────────────────────────────────────
@@ -163,5 +164,6 @@ export function runSignalEngine(stats: FullStatistics): AnalysisResult {
     signals,
     explanation,
     limitations,
+    sentenceAnalyses: analyzeSentences(stats),
   }
 }

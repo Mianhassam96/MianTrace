@@ -15,6 +15,7 @@ import { HowItWorks } from './components/HowItWorks'
 import { Footer } from './components/Footer'
 
 import { computeStatistics, runSignalEngine } from './analysis'
+import { fetchWebsiteContent } from './api/worker-client'
 import type { AnalysisResult, AnalyzerTab } from './types'
 
 // ─── App state ────────────────────────────────────────────────────────────────
@@ -94,8 +95,36 @@ export default function App() {
         }, 100)
       } else {
         // Phase 9 — website fetch via Cloudflare Worker
-        // Placeholder until the worker is built
-        throw new Error('Website analysis is coming in Phase 9. Use text mode for now.')
+        const workerResult = await fetchWebsiteContent(urlContent.trim())
+
+        if (!workerResult.ok) {
+          throw new Error(workerResult.error)
+        }
+
+        const { data } = workerResult
+
+        // Run the same analysis engine on extracted content
+        await new Promise<void>(resolve => setTimeout(resolve, 50))
+        const stats = computeStatistics(data.content)
+        const analysisResult = runSignalEngine(stats)
+
+        // Attach website metadata to the result
+        setResult({
+          ...analysisResult,
+          sourceMode: 'website',
+          websiteData: {
+            url: data.url,
+            title: data.title,
+            description: data.description,
+            headings: data.headings,
+            paragraphCount: data.paragraphCount,
+            wordCount: data.wordCount,
+          },
+        })
+        setStatus('success')
+        setTimeout(() => {
+          document.getElementById('results-section')?.scrollIntoView({ behavior: 'smooth' })
+        }, 100)
       }
     } catch (err) {
       setStatus('error')

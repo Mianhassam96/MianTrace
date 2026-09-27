@@ -54,6 +54,17 @@ export interface AnalysisResult {
   limitations: string;
   /** Per-sentence breakdown (Phase 7) */
   sentenceAnalyses: SentenceAnalysis[];
+  /** Source mode — text or website */
+  sourceMode?: 'text' | 'website';
+  /** Website metadata when sourceMode === 'website' (Phase 9) */
+  websiteData?: {
+    url: string;
+    title: string;
+    description: string;
+    headings: string[];
+    paragraphCount: number;
+    wordCount: number;
+  };
 }
 
 export interface WebsiteContent {

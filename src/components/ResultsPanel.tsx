@@ -4,6 +4,8 @@ import { SignalsPanel } from './SignalsPanel'
 import { ExplanationPanel } from './ExplanationPanel'
 import { SentenceAnalysisPanel } from './SentenceAnalysisPanel'
 import { ImprovementsPanel } from './ImprovementsPanel'
+import { WebsiteResultsHeader } from './WebsiteResultsHeader'
+import type { WorkerSuccessResponse } from '../api/worker-client'
 
 interface ResultsPanelProps {
   result: AnalysisResult
@@ -21,6 +23,11 @@ export function ResultsPanel({ result, onReset }: ResultsPanelProps) {
         </span>
         <div className="flex-1 h-px bg-gray-200 dark:bg-gray-800" />
       </div>
+
+      {/* Website metadata header — shown only for website analysis */}
+      {result.sourceMode === 'website' && result.websiteData && (
+        <WebsiteResultsHeader websiteData={result.websiteData as WorkerSuccessResponse} />
+      )}
 
       {/* Score card */}
       <ScoreCard result={result} />

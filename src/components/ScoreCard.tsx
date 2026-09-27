@@ -99,16 +99,16 @@ export function ScoreCard({ result }: ScoreCardProps) {
           <p className="text-xs font-semibold uppercase tracking-wide text-gray-400 dark:text-gray-600 mb-3">
             Content Overview
           </p>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-2 gap-2">
             {stats.map(({ label, value }) => (
               <div
                 key={label}
-                className="rounded-xl bg-gray-50 dark:bg-gray-800/60 px-4 py-3"
+                className="rounded-xl bg-gray-50 dark:bg-gray-800/60 px-3 py-2.5"
               >
-                <p className="text-lg font-bold text-gray-900 dark:text-white tabular-nums">
+                <p className="text-base font-bold text-gray-900 dark:text-white tabular-nums leading-tight">
                   {value}
                 </p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">{label}</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{label}</p>
               </div>
             ))}
           </div>

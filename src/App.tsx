@@ -219,7 +219,7 @@ export default function App() {
         {showResults && (
           <section
             id="results-section"
-            className="px-4 pb-16"
+            className="px-4 pb-16 scroll-mt-16"
             aria-label="Analysis results"
           >
             <div className="max-w-2xl mx-auto">

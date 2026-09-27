@@ -35,6 +35,11 @@ jobs:
 
       - name: Build
         run: npm run build
+        env:
+          # Set in GitHub repo Settings → Secrets and variables → Actions
+          # Name: VITE_WORKER_URL
+          # Value: https://miantrace-worker.your-account.workers.dev
+          VITE_WORKER_URL: ${{ secrets.VITE_WORKER_URL }}
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3

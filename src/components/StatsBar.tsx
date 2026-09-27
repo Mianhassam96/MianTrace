@@ -30,9 +30,10 @@ export function StatsBar({ stats }: StatsBarProps) {
   return (
     <div
       aria-label="Content statistics"
-      className="rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900/60 px-4 py-1"
+      className="rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900/60 px-4 py-2"
     >
-      <div className="flex items-center justify-around flex-wrap gap-y-1 divide-x divide-gray-200 dark:divide-gray-700">
+      {/* Grid layout — wraps gracefully on narrow screens */}
+      <div className="grid grid-cols-3 sm:grid-cols-6 gap-1">
         <StatItem label="words" value={stats.words} />
         <StatItem label="characters" value={stats.characters} />
         <StatItem label="sentences" value={stats.sentences} />
@@ -40,12 +41,12 @@ export function StatsBar({ stats }: StatsBarProps) {
         <StatItem
           label="avg sentence"
           value={`${stats.avgSentenceLength}w`}
-          sub={`${stats.minSentenceLength}–${stats.maxSentenceLength}w range`}
+          sub={`${stats.minSentenceLength}–${stats.maxSentenceLength}w`}
         />
         <StatItem
           label="vocabulary"
           value={`${diversityPct}%`}
-          sub="unique ratio"
+          sub="unique"
         />
       </div>
 

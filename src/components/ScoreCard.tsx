@@ -69,7 +69,7 @@ export function ScoreCard({ result }: ScoreCardProps) {
   return (
     <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-6">
       <p className="text-[11px] font-semibold uppercase tracking-widest text-slate-400 dark:text-slate-600 mb-4">
-        Analysis Complete
+        AI-Likelihood Estimate
       </p>
 
       <div className="flex flex-col sm:flex-row items-center gap-6">

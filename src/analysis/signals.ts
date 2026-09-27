@@ -44,24 +44,29 @@ function makeSignal(
  * AI writing tends to have low variance — sentences cluster around a mean.
  * Uses coefficient of variation (CV = stdDev / mean).
  * Low CV → high signal score.
+ *
+ * Calibration notes:
+ * - Requires ≥6 sentences for reliability (short text has naturally uniform lengths)
+ * - CV < 0.25 is highly uniform (AI-like); CV > 0.55 is naturally varied (human-like)
+ * - Confidence boost applied when word count is sufficient
  */
 export function signalSentenceUniformity(stats: FullStatistics): Signal {
-  if (stats.sentences < 3) {
+  // Need enough sentences to distinguish AI uniformity from short-text brevity
+  if (stats.sentences < 6) {
     return makeSignal(
       'sentence-uniformity',
       'Sentence Uniformity',
       0,
-      'Not enough sentences to measure length variation.',
+      'Not enough sentences to reliably measure length variation.',
     )
   }
 
   const cv = stats.sentenceLengthCV
-  // CV < 0.2 is highly uniform; CV > 0.6 is varied
-  // Invert so low CV = high score
-  const score = clamp(1 - (cv / 0.6), 0, 1)
+  // Recalibrated: CV < 0.25 = very uniform; CV > 0.55 = naturally varied
+  const score = clamp(1 - (cv / 0.55), 0, 1)
 
   const descMap: Record<SignalLevel, string> = {
-    high: `Sentence lengths are notably uniform (variation: ${round(cv * 100, 1)}%). AI-generated text tends to maintain consistent sentence structure.`,
+    high: `Sentence lengths are notably uniform (CV: ${round(cv, 2)}). AI-generated text tends to maintain consistent sentence structure.`,
     medium: `Sentence lengths show moderate variation (CV: ${round(cv, 2)}). Some uniformity is present.`,
     low: `Sentence lengths vary naturally (CV: ${round(cv, 2)}). This is typical of human writing.`,
   }
@@ -81,9 +86,13 @@ export function signalSentenceUniformity(stats: FullStatistics): Signal {
 // ─── Signal 2 — Vocabulary Patterns ──────────────────────────────────────────
 /**
  * Measures vocabulary diversity (type-token ratio).
- * AI writing often has lower diversity because it gravitates toward
- * common, neutral vocabulary.
- * Low diversity → high signal score.
+ * AI writing gravitates toward common, neutral vocabulary — lower diversity.
+ * TTR naturally decreases as text grows, so we use a length-adjusted baseline.
+ *
+ * Calibrated thresholds (from audit):
+ * - Short text (<100w): TTR typically 0.70–0.95 for human, 0.60–0.75 for AI
+ * - Medium text (100–300w): TTR typically 0.55–0.75 for human, 0.45–0.60 for AI
+ * - Long text (300w+): TTR typically 0.40–0.60 for human, 0.30–0.50 for AI
  */
 export function signalVocabularyPatterns(stats: FullStatistics): Signal {
   if (stats.words < 20) {
@@ -95,21 +104,26 @@ export function signalVocabularyPatterns(stats: FullStatistics): Signal {
     )
   }
 
-  const diversity = stats.vocabularyDiversity
-  // TTR naturally decreases as text length increases
-  // Normalize using a length-adjusted scale
-  const lengthFactor = Math.min(stats.words / 500, 1)
-  // At 500+ words, expect TTR around 0.40–0.55 for human writing
-  // Scale: diversity < 0.3 → high signal; > 0.55 → low signal
-  const adjusted = diversity + lengthFactor * 0.15
-  const score = clamp(1 - (adjusted / 0.55), 0, 1)
+  const ttr = stats.vocabularyDiversity
+
+  // Length-adjusted expected minimum for human writing:
+  // Short text naturally has high TTR; longer text naturally lower.
+  // Expected human floor: 0.70 at 50w, 0.55 at 150w, 0.42 at 300w+
+  const lengthNorm = Math.min(stats.words / 300, 1)
+  const humanFloor = 0.70 - (lengthNorm * 0.28) // 0.70 → 0.42
+
+  // Score: how far below the human floor is this text?
+  // At or above floor → score 0. 15%+ below floor → score 1.
+  const deficit = humanFloor - ttr
+  const score = clamp(deficit / 0.15, 0, 1)
 
   const level = scoreToLevel(score)
-  const pct = round(diversity * 100, 1)
+  const pct = round(ttr * 100, 1)
+  const floorPct = round(humanFloor * 100, 1)
 
   const descMap: Record<SignalLevel, string> = {
-    high: `Vocabulary diversity is low at ${pct}% unique words. AI text often relies on a limited, neutral word set.`,
-    medium: `Vocabulary diversity is moderate at ${pct}% unique words. Some repetition of common terms is present.`,
+    high: `Vocabulary diversity is low at ${pct}% unique words (expected ≥${floorPct}% for this length). AI text often relies on a limited, neutral word set.`,
+    medium: `Vocabulary diversity is slightly below expected at ${pct}% unique words. Some repetition of common terms is present.`,
     low: `Vocabulary diversity is healthy at ${pct}% unique words. Varied word choice is typical of human writing.`,
   }
 
@@ -335,9 +349,9 @@ export function signalGenericPhrasing(stats: FullStatistics): Signal {
     }
   }
 
-  // Normalize per 100 words
+  // Normalize per 100 words — recalibrated: 2 phrases/100w = medium, 4+ = high
   const density = (matchCount / stats.words) * 100
-  const score = clamp(density / 5, 0, 1)
+  const score = clamp(density / 4, 0, 1)
 
   const level = scoreToLevel(score)
   const descMap: Record<SignalLevel, string> = {

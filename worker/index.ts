@@ -163,7 +163,9 @@ async function extractContent(html: string, baseUrl: string): Promise<WorkerResp
 }
 
 function extractTag(html: string, tag: string): string {
-  const match = html.match(new RegExp(`<${tag}[^>]*>([\\s\\S]*?)<\\/${tag}>`, 'i'))
+  // Use only known safe tag names to avoid regex injection
+  const safeTag = tag.replace(/[^a-zA-Z0-9]/g, '')
+  const match = html.match(new RegExp(`<${safeTag}[^>]*>([\\s\\S]*?)<\\/${safeTag}>`, 'i'))
   return match ? match[1] : ''
 }
 
@@ -224,6 +226,11 @@ export default {
 
     if (!targetParam) {
       return errorResponse('Missing required query parameter: url', 'MISSING_URL')
+    }
+
+    // Bound URL length to prevent DoS via very long inputs
+    if (targetParam.length > 2048) {
+      return errorResponse('URL exceeds maximum allowed length (2048 characters).', 'URL_TOO_LONG')
     }
 
     // Parse and validate the target URL

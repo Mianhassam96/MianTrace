@@ -16,16 +16,17 @@ import { analyzeSentences } from './sentence-analysis'
 import { clamp, round } from './text-utils'
 
 // ─── Signal weights ───────────────────────────────────────────────────────────
-// Higher weight = this signal contributes more to the final score.
-// Weights are normalized internally so they don't need to sum to 1.
+// Calibrated from audit: transition + generic phrasing are the most reliable
+// signals for AI-generated text. Sentence uniformity reduced to prevent
+// over-firing on short human text.
 const SIGNAL_WEIGHTS: Record<string, number> = {
-  'sentence-uniformity':        1.5,
-  'vocabulary-patterns':        1.5,
-  'phrase-repetition':          1.2,
-  'structural-predictability':  1.0,
-  'transition-patterns':        1.3,
-  'generic-phrasing':           1.4,
-  'sentence-openings':          1.0,
+  'sentence-uniformity':        1.0,  // reduced — over-fires on short text
+  'vocabulary-patterns':        1.5,  // reliable when text is long enough
+  'phrase-repetition':          1.1,
+  'structural-predictability':  0.9,
+  'transition-patterns':        1.6,  // increased — very reliable AI signal
+  'generic-phrasing':           1.6,  // increased — very reliable AI signal
+  'sentence-openings':          0.9,
   'paragraph-consistency':      0.8,
 }
 
@@ -107,7 +108,7 @@ function buildExplanation(
   }
 
   const names = highSignals.slice(0, 3).map(s => s.name)
-  return `MianTrace detected strong AI-likelihood signals across multiple dimensions${names.length ? ` — including ${names.join(', ')}` : ''}. The writing profile closely matches patterns associated with AI-generated text.`
+  return `MianTrace detected strong AI-likelihood signals across multiple dimensions${names.length ? ` — including ${names.join(', ')}` : ''}. The writing profile shows several characteristics that are statistically associated with AI-generated or highly formulaic text.`
 }
 
 // ─── Limitations text ─────────────────────────────────────────────────────────

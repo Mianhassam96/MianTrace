@@ -101,7 +101,7 @@ const IMPROVEMENTS: Record<string, Omit<ImprovementAdvice, 'signalId' | 'signalN
 
   'generic-phrasing': {
     headline: 'Replace vague language with specific detail',
-    context: 'Several broad, filler phrases were detected — language that adds length without adding meaning, which is a hallmark of AI text.',
+    context: 'Several broad, filler phrases were detected — language that adds length without adding meaning, which is commonly associated with AI-assisted or formulaic writing.',
     actions: [
       'For every "in today\'s world" or "in recent years", ask: which world? which years? Replace with the actual context.',
       '"A wide range of" → list the actual things, or give a number.',

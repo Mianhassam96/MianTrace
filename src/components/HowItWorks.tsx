@@ -67,7 +67,7 @@ export function HowItWorks() {
             <path d="M9 1a8 8 0 100 16A8 8 0 009 1zm.75 11.5h-1.5v-5h1.5v5zm0-6.5h-1.5V4.5h1.5V6z"/>
           </svg>
           <div>
-            <p className="text-xs font-semibold text-slate-600 dark:text-slate-400 mb-0.5">About AI detection</p>
+            <p className="text-xs font-semibold text-slate-600 dark:text-slate-400 mb-0.5">About AI likelihood estimates</p>
             <p className="text-xs text-slate-500 dark:text-slate-500 leading-relaxed">
               MianTrace identifies writing patterns that may be associated with AI-assisted content.
               Results are probabilistic estimates, not proof of authorship. Some human writing styles

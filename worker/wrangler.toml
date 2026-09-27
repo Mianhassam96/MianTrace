@@ -1,10 +1,9 @@
 name = "miantrace-worker"
 main = "index.ts"
-compatibility_date = "2024-01-01"
-compatibility_flags = ["nodejs_compat"]
+compatibility_date = "2024-09-23"
 
-[build]
-command = ""
-
-# Deploy with: npx wrangler deploy
-# After deploying, update VITE_WORKER_URL in the frontend .env
+# Deploy with:
+#   cd worker
+#   npm install
+#   npx wrangler login
+#   npx wrangler deploy

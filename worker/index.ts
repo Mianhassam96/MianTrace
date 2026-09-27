@@ -186,7 +186,7 @@ function stripTags(html: string): string {
 // ─── Request handler ──────────────────────────────────────────────────────────
 
 const CORS_HEADERS = {
-  'Access-Control-Allow-Origin': 'https://mianhassam96.github.io',
+  'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'GET, OPTIONS',
   'Access-Control-Allow-Headers': 'Content-Type',
   'Access-Control-Max-Age': '86400',

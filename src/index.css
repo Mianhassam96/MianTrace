@@ -50,3 +50,56 @@ body {
 @layer utilities {
   .text-balance { text-wrap: balance; }
 }
+
+/* ─── Print styles (@media print = PDF export) ──────────────────────────── */
+@media print {
+  /* Hide everything except the printable report */
+  body > #root > * { display: none !important; }
+  #miantrace-print-report { display: block !important; }
+
+  /* Page setup */
+  @page {
+    size: A4;
+    margin: 20mm 18mm 20mm 18mm;
+  }
+
+  /* Reset body for print */
+  body {
+    background: white !important;
+    color: #0f172a !important;
+    font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+    font-size: 11pt;
+    line-height: 1.5;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* Report container */
+  #miantrace-print-report {
+    max-width: 100%;
+    padding: 0;
+    color: #0f172a;
+  }
+
+  /* Prevent page breaks inside key blocks */
+  .print-no-break {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  /* Force page break before a section if needed */
+  .print-break-before {
+    break-before: page;
+    page-break-before: always;
+  }
+
+  /* Links: show URL inline */
+  a[href]::after {
+    content: ' (' attr(href) ')';
+    font-size: 9pt;
+    color: #64748b;
+  }
+
+  /* But not for icon-only links */
+  a.no-print-href::after { content: none; }
+}

@@ -6,6 +6,9 @@ import { SentenceAnalysisPanel } from './SentenceAnalysisPanel'
 import { ImprovementsPanel } from './ImprovementsPanel'
 import { WebsiteResultsHeader } from './WebsiteResultsHeader'
 import { CopyReportButton } from './CopyReportButton'
+import { DownloadPDFButton } from './DownloadPDFButton'
+import { ShareReportButton } from './ShareReportButton'
+import { PrintableReport } from './PrintableReport'
 import type { WorkerSuccessResponse } from '../api/worker-client'
 
 interface ResultsPanelProps {
@@ -14,8 +17,15 @@ interface ResultsPanelProps {
 }
 
 export function ResultsPanel({ result, onReset }: ResultsPanelProps) {
+  function handlePrint() {
+    window.print()
+  }
+
   return (
     <div className="flex flex-col gap-5">
+      {/* PrintableReport lives in DOM, hidden from screen, revealed @media print */}
+      <PrintableReport result={result}/>
+
       {/* Website header */}
       {result.sourceMode === 'website' && result.websiteData && (
         <WebsiteResultsHeader websiteData={result.websiteData as WorkerSuccessResponse}/>
@@ -44,8 +54,10 @@ export function ResultsPanel({ result, onReset }: ResultsPanelProps) {
       </div>
 
       {/* Actions row */}
-      <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+      <div className="flex flex-col sm:flex-row items-center justify-center gap-3 flex-wrap">
+        <DownloadPDFButton onPrint={handlePrint}/>
         <CopyReportButton result={result}/>
+        <ShareReportButton result={result}/>
 
         <button
           onClick={onReset}

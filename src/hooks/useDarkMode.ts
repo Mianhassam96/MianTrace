@@ -5,7 +5,8 @@ function getInitialDark(): boolean {
     const stored = localStorage.getItem('miantrace-theme')
     if (stored === 'dark') return true
     if (stored === 'light') return false
-    return window.matchMedia('(prefers-color-scheme: dark)').matches
+    // Default: light mode on first visit
+    return false
   } catch {
     return false
   }
@@ -29,6 +30,5 @@ export function useDarkMode() {
   }, [isDark])
 
   const toggle = () => setIsDark(prev => !prev)
-
   return { isDark, toggle }
 }

@@ -1,26 +1,52 @@
 @import "tailwindcss";
 
-/* Enable class-based dark mode */
+/* ─── Class-based dark mode ─────────────────────────────────────────────── */
 @variant dark (&:where(.dark, .dark *));
 
-/* MianTrace base styles */
+/* ─── Design tokens ─────────────────────────────────────────────────────── */
 :root {
-  --color-brand: #6366f1;
-  --color-brand-dark: #4f46e5;
+  /* Brand blue */
+  --blue-600: #2563EB;
+  --blue-700: #1D4ED8;
+  --blue-50:  #EFF6FF;
+
+  /* Surfaces */
+  --bg:       #F8FAFC;
+  --surface:  #FFFFFF;
+  --surface-2:#F1F5F9;
+
+  /* Borders */
+  --border:   #E2E8F0;
+  --border-2: #CBD5E1;
+
+  /* Text */
+  --text-1:   #0F172A;
+  --text-2:   #475569;
+  --text-3:   #94A3B8;
+
+  /* Semantic */
+  --success:  #16A34A;
+  --warning:  #D97706;
+  --danger:   #DC2626;
 }
 
-* {
-  box-sizing: border-box;
-}
+/* ─── Base ──────────────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
 
-html {
-  scroll-behavior: smooth;
-}
+html { scroll-behavior: smooth; }
 
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
-    Ubuntu, Cantarell, sans-serif;
+  background: var(--bg);
+  color: var(--text-1);
+  font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI',
+    Roboto, Oxygen, Ubuntu, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  line-height: 1.6;
+}
+
+/* ─── Tailwind custom utilities ─────────────────────────────────────────── */
+@layer utilities {
+  .text-balance { text-wrap: balance; }
 }

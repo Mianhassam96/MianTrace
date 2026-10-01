@@ -36,6 +36,7 @@ function ScoreRing({ score }: { score: number }) {
   const color = getScoreRingColor(score)
 
   return (
+    /* aria-hidden: accessible label is on the parent card via aria-label */
     <div className="relative inline-flex items-center justify-center w-32 h-32" aria-hidden="true">
       <svg className="w-full h-full -rotate-90" viewBox="0 0 120 120">
         <circle cx="60" cy="60" r={radius} fill="none" stroke="currentColor" strokeWidth="7"
@@ -67,7 +68,10 @@ export function ScoreCard({ result }: ScoreCardProps) {
   ]
 
   return (
-    <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-6">
+    <div
+      className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-6"
+      aria-label={`AI-likelihood estimate: ${aiLikelihood} percent. ${getScoreLabel(aiLikelihood)}. ${confidence.charAt(0).toUpperCase() + confidence.slice(1)} confidence.`}
+    >
       <p className="text-[11px] font-semibold uppercase tracking-widest text-slate-400 dark:text-slate-600 mb-4">
         AI-Likelihood Estimate
       </p>

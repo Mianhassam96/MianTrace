@@ -28,7 +28,7 @@ export function DownloadPDFButton({ onPrint }: DownloadPDFButtonProps) {
       disabled={state === 'preparing'}
       aria-label="Download analysis as PDF"
       className={`
-        inline-flex items-center gap-2 px-5 py-2.5 rounded-xl border text-sm font-medium
+        w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl border text-sm font-medium
         transition-all duration-150
         ${state === 'preparing'
           ? 'border-slate-200 dark:border-slate-700 text-slate-400 dark:text-slate-600 cursor-wait'

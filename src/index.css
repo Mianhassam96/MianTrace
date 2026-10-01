@@ -5,26 +5,17 @@
 
 /* ─── Design tokens ─────────────────────────────────────────────────────── */
 :root {
-  /* Brand blue */
   --blue-600: #2563EB;
   --blue-700: #1D4ED8;
   --blue-50:  #EFF6FF;
-
-  /* Surfaces */
   --bg:       #F8FAFC;
   --surface:  #FFFFFF;
   --surface-2:#F1F5F9;
-
-  /* Borders */
   --border:   #E2E8F0;
   --border-2: #CBD5E1;
-
-  /* Text */
   --text-1:   #0F172A;
   --text-2:   #475569;
   --text-3:   #94A3B8;
-
-  /* Semantic */
   --success:  #16A34A;
   --warning:  #D97706;
   --danger:   #DC2626;
@@ -32,9 +23,7 @@
 
 /* ─── Base ──────────────────────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; }
-
 html { scroll-behavior: smooth; }
-
 body {
   margin: 0;
   background: var(--bg);
@@ -51,35 +40,30 @@ body {
   .text-balance { text-wrap: balance; }
 }
 
-/* ─── Print styles (@media print = PDF export) ──────────────────────────── */
+/* ─── Print styles ───────────────────────────────────────────────────────── */
+/*
+ * DOM structure at print time:
+ *   <body>
+ *     <div class="screen-only">  ← hidden
+ *     <div id="miantrace-print-report">  ← shown
+ *
+ * PrintableReport is a sibling of .screen-only (rendered in App.tsx),
+ * so hiding .screen-only cannot affect it.
+ */
 @media print {
-  /* Strategy: hide the entire screen app, show only the report.
-     The report div has position:fixed so it escapes the hidden parent. */
-
-  /* Hide the main app shell */
   .screen-only {
     display: none !important;
   }
 
-  /* The printable report is position:fixed at print time,
-     filling the page independently of the component tree */
   #miantrace-print-report {
     display: block !important;
-    position: fixed !important;
-    top: 0 !important;
-    left: 0 !important;
-    width: 100% !important;
-    background: white !important;
-    z-index: 9999 !important;
   }
 
-  /* Page setup */
   @page {
     size: A4;
     margin: 20mm 18mm 20mm 18mm;
   }
 
-  /* Reset body for print */
   body {
     background: white !important;
     color: #0f172a !important;
@@ -90,32 +74,11 @@ body {
     print-color-adjust: exact;
   }
 
-  /* Report container */
-  #miantrace-print-report {
-    max-width: 100%;
-    padding: 0;
-    color: #0f172a;
-  }
-
-  /* Prevent page breaks inside key blocks */
   .print-no-break {
     break-inside: avoid;
     page-break-inside: avoid;
   }
 
-  /* Force page break before a section if needed */
-  .print-break-before {
-    break-before: page;
-    page-break-before: always;
-  }
-
-  /* Links: show URL inline */
-  a[href]::after {
-    content: ' (' attr(href) ')';
-    font-size: 9pt;
-    color: #64748b;
-  }
-
-  /* But not for icon-only links */
+  /* Suppress href display for decorative links */
   a.no-print-href::after { content: none; }
 }

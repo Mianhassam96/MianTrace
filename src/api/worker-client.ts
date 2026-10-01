@@ -1,10 +1,11 @@
 /**
  * worker-client.ts
  * Typed fetch wrapper for the MianTrace Cloudflare Worker.
- * Handles errors, timeouts, and response parsing.
+ * All error messages are human-readable — no technical codes exposed to UI.
  */
 
-// Worker URL — set via env variable at build time, falls back to placeholder
+import { getUserError, errorFromException } from './errors'
+
 const WORKER_URL = (import.meta.env.VITE_WORKER_URL as string | undefined)
   ?? 'https://miantrace.mianhassam96.workers.dev'
 
@@ -25,30 +26,27 @@ export interface WorkerErrorResponse {
 
 export type WorkerResult =
   | { ok: true; data: WorkerSuccessResponse }
-  | { ok: false; error: string; code: string }
+  | { ok: false; headline: string; detail: string; retryable: boolean }
+
+function fail(code: string): WorkerResult {
+  const { headline, detail, retryable } = getUserError(code)
+  return { ok: false, headline, detail, retryable }
+}
 
 /**
  * Fetch and extract content from a URL via the Cloudflare Worker.
- * Returns a typed result — never throws.
+ * Returns a typed result — never throws, never exposes technical strings.
  */
 export async function fetchWebsiteContent(url: string): Promise<WorkerResult> {
-  if (!WORKER_URL) {
-    return {
-      ok: false,
-      error: 'Website analysis service is not configured.',
-      code: 'WORKER_NOT_CONFIGURED',
-    }
-  }
+  if (!WORKER_URL) return fail('WORKER_NOT_CONFIGURED')
 
-  // Validate the URL client-side before sending
+  // Client-side URL validation
   let parsed: URL
   try {
     parsed = new URL(url)
-    if (parsed.protocol !== 'https:') {
-      return { ok: false, error: 'Only HTTPS URLs are supported.', code: 'INVALID_URL' }
-    }
+    if (parsed.protocol !== 'https:') return fail('INVALID_URL')
   } catch {
-    return { ok: false, error: 'Invalid URL format.', code: 'INVALID_URL' }
+    return fail('INVALID_URL')
   }
 
   const workerUrl = `${WORKER_URL}?url=${encodeURIComponent(parsed.toString())}`
@@ -60,26 +58,19 @@ export async function fetchWebsiteContent(url: string): Promise<WorkerResult> {
     response = await fetch(workerUrl, { signal: controller.signal })
     clearTimeout(timeout)
   } catch (err: unknown) {
-    const isTimeout = err instanceof Error && err.name === 'AbortError'
-    return {
-      ok: false,
-      error: isTimeout
-        ? 'The request timed out. Try again or use a different URL.'
-        : 'Could not reach the analysis service. Check your connection and try again.',
-      code: isTimeout ? 'TIMEOUT' : 'NETWORK_ERROR',
-    }
+    return { ok: false, ...errorFromException(err) }
   }
 
   let json: WorkerSuccessResponse | WorkerErrorResponse
   try {
     json = await response.json()
   } catch {
-    return { ok: false, error: 'Received an invalid response from the analysis service.', code: 'PARSE_ERROR' }
+    return fail('PARSE_ERROR')
   }
 
   if (!response.ok || 'error' in json) {
-    const err = json as WorkerErrorResponse
-    return { ok: false, error: err.error ?? 'An unknown error occurred.', code: err.code ?? 'UNKNOWN' }
+    const code = (json as WorkerErrorResponse).code ?? 'UNKNOWN'
+    return fail(code)
   }
 
   return { ok: true, data: json as WorkerSuccessResponse }

@@ -97,7 +97,7 @@ export function ShareReportButton({ result }: ShareReportButtonProps) {
       disabled={state !== 'idle'}
       aria-label={supportsShare ? 'Share analysis report' : 'Copy link to MianTrace'}
       aria-live="polite"
-      className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-xl border text-sm font-medium transition-all duration-150 ${className}`}
+      className={`w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl border text-sm font-medium transition-all duration-150 ${className}`}
     >
       {icon}
       {label}

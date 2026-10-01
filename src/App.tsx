@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import './App.css'
 
 import { useDarkMode } from './hooks/useDarkMode'
+import { useHashRoute } from './hooks/useHashRoute'
 import { Header } from './components/Header'
 import { Hero } from './components/Hero'
 import { AnalyzerTabs } from './components/AnalyzerTabs'
@@ -14,11 +15,13 @@ import { StatsBar } from './components/StatsBar'
 import { ResultsPanel } from './components/ResultsPanel'
 import { PrintableReport } from './components/PrintableReport'
 import { HowItWorks } from './components/HowItWorks'
+import { MethodologyPage } from './components/MethodologyPage'
+import { FAQPage } from './components/FAQPage'
 import { Footer } from './components/Footer'
 
 import { computeStatistics, runSignalEngine } from './analysis'
 import { fetchWebsiteContent } from './api/worker-client'
-import { getUserError, errorFromException } from './api/errors'
+import { errorFromException } from './api/errors'
 import type { AnalysisResult, AnalyzerTab } from './types'
 
 type AppStatus = 'idle' | 'loading' | 'success' | 'error'
@@ -31,6 +34,7 @@ interface AppError {
 
 export default function App() {
   const { isDark, toggle } = useDarkMode()
+  const [route, setRoute] = useHashRoute()
 
   const [activeTab, setActiveTab]     = useState<AnalyzerTab>('text')
   const [textContent, setTextContent] = useState('')
@@ -110,10 +114,19 @@ export default function App() {
     <>
       {/* Screen UI — hidden at print time */}
       <div className="screen-only min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 transition-colors duration-200 flex flex-col">
-        <Header isDark={isDark} onToggleDark={toggle}/>
+        <Header isDark={isDark} onToggleDark={toggle} route={route} onNavigate={setRoute}/>
 
         <main className="flex-1" id="main-content">
-          {!showResults && <Hero/>}
+          {/* ── Methodology page ─────────────────────────────────────── */}
+          {route === 'methodology' && <MethodologyPage/>}
+
+          {/* ── FAQ page ─────────────────────────────────────────────── */}
+          {route === 'faq' && <FAQPage/>}
+
+          {/* ── Analyzer (default) ───────────────────────────────────── */}
+          {route === 'analyzer' && (
+            <>
+              {!showResults && <Hero/>}
 
           {/* ── Analyzer ─────────────────────────────────────────────── */}
           <section id="analyzer-section" className="px-4 sm:px-5 pb-6" aria-label="Content analyzer">
@@ -199,6 +212,8 @@ export default function App() {
 
           {/* How It Works */}
           {!showResults && <HowItWorks/>}
+            </>
+          )}
         </main>
 
         <Footer/>

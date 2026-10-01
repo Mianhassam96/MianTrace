@@ -53,9 +53,25 @@ body {
 
 /* ─── Print styles (@media print = PDF export) ──────────────────────────── */
 @media print {
-  /* Hide everything except the printable report */
-  body > #root > * { display: none !important; }
-  #miantrace-print-report { display: block !important; }
+  /* Strategy: hide the entire screen app, show only the report.
+     The report div has position:fixed so it escapes the hidden parent. */
+
+  /* Hide the main app shell */
+  .screen-only {
+    display: none !important;
+  }
+
+  /* The printable report is position:fixed at print time,
+     filling the page independently of the component tree */
+  #miantrace-print-report {
+    display: block !important;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    background: white !important;
+    z-index: 9999 !important;
+  }
 
   /* Page setup */
   @page {

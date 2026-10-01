@@ -145,7 +145,7 @@ export function PrintableReport({ result }: PrintableReportProps) {
     /* Hidden from screen, revealed by @media print */
     <div
       id="miantrace-print-report"
-      style={{ ...base, display: 'none', maxWidth: '700px', margin: '0 auto' }}
+      style={{ ...base, display: 'none', maxWidth: '700px', margin: '0 auto', padding: '0 16px' }}
     >
       {/* ── Header ──────────────────────────────────────────────────────── */}
       <div className="print-no-break" style={{

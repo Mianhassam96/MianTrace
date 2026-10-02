@@ -216,7 +216,7 @@ export default function App() {
           )}
         </main>
 
-        <Footer/>
+        <Footer onNavigate={setRoute}/>
       </div>
 
       {/* Printable report — sibling of screen UI, shown only @media print */}

@@ -7,21 +7,34 @@
 
 > **Live:** [mianhassam96.github.io/MianTrace](https://mianhassam96.github.io/MianTrace/)
 
-MianTrace analyzes text and webpages for AI-like writing patterns and provides explainable, probabilistic insights — without making unfounded claims about authorship.
+MianTrace analyzes text and webpages for writing patterns statistically associated with AI-generated content. It provides transparent, explainable results — without making false claims about authorship.
+
+---
+
+## What MianTrace is
+
+A writing pattern analyzer. Not an "AI detector."
+
+MianTrace measures 8 writing signals and produces a probabilistic AI-likelihood estimate. Every signal is explained. Every result includes an honest limitations disclaimer. Text analysis runs entirely in your browser — no data is transmitted.
 
 ---
 
 ## Features
 
-- **Text Analysis** — Paste any content and get an AI-likelihood estimate with signal breakdown
-- **Website Analysis** — Enter a URL to fetch and analyze webpage content (via Cloudflare Worker)
-- **8-Signal Engine** — Sentence uniformity, vocabulary variation, phrase repetition, structural predictability, transition patterns, generic phrasing, sentence opening patterns, paragraph consistency
-- **Explainable Results** — Every signal is explained with context, not just scored
-- **Sentence-Level Analysis** — Color-coded per-sentence breakdown with expandable contribution details
-- **Improvement Suggestions** — Numbered, actionable advice for each detected signal with before/after examples
-- **Dark / Light Mode** — Persisted to localStorage
-- **Responsive** — Works on 320px mobile through 1920px desktop
-- **No data stored** — All analysis runs in the browser; no content is sent to a server
+| Feature | Detail |
+|---|---|
+| Text analysis | Paste content, get AI-likelihood + 8 signal breakdown |
+| Website analysis | Enter a URL, extract and analyze main content |
+| 8 writing signals | Transition patterns, generic phrasing, sentence uniformity, structural predictability, sentence openings, vocabulary variation, phrase repetition, paragraph consistency |
+| Sentence analysis | Per-sentence color-coded breakdown with expandable contribution reasons |
+| Improvement suggestions | Numbered, actionable advice per detected signal with before/after examples |
+| Reports | Copy plain-text report, Download PDF, Share |
+| Methodology page | Full transparency: signal weights, calibration deltas, limitations, privacy |
+| FAQ | 8 honest questions including "can this prove AI authorship?" (answer: no) |
+| Dark mode | Class-based, persisted to localStorage |
+| Responsive | 320px mobile through 1920px desktop |
+| No signup | Free, no account, no tracking |
+| Privacy | Text analysis: browser-only. Website analysis: URL sent to Cloudflare Worker |
 
 ---
 
@@ -30,23 +43,16 @@ MianTrace analyzes text and webpages for AI-like writing patterns and provides e
 ```
 Input (text or URL)
         ↓
-Content Statistics Engine
-  words · characters · sentences · paragraphs
-  avg sentence length · vocabulary diversity
-  repeated phrases · sentence length CV
+8 signal detectors (deterministic, rule-based)
         ↓
-8-Signal AI-Likelihood Engine
-  sentence uniformity · vocabulary patterns
-  phrase repetition · structural predictability
-  transition patterns · generic phrasing
-  sentence openings · paragraph consistency
+Weighted scoring model
         ↓
-Weighted Scoring + Confidence
+AI-likelihood % + confidence level
         ↓
-AI-Likelihood % + High/Moderate/Low confidence
-        ↓
-Explanation + Sentence Analysis + Improvements
+Explained results + sentence analysis + improvement suggestions
 ```
+
+MianTrace does **not** use a machine learning model or trained classifier. All analysis is deterministic — same input always produces the same result. See the [Methodology page](https://mianhassam96.github.io/MianTrace/#methodology) for full signal documentation.
 
 ---
 
@@ -68,25 +74,30 @@ Explanation + Sentence Analysis + Improvements
 ```
 src/
 ├── analysis/
-│   ├── text-utils.ts        # String normalization helpers
+│   ├── text-utils.ts        # String normalization
 │   ├── tokenizer.ts         # Sentence + word tokenization
 │   ├── statistics.ts        # Deterministic content statistics
 │   ├── signals.ts           # 8 signal detectors
 │   ├── sentence-analysis.ts # Per-sentence signal scoring
 │   ├── improvements.ts      # Per-signal improvement advice
+│   ├── report.ts            # Plain-text report generator
 │   ├── engine.ts            # Weighted scoring + confidence
-│   └── index.ts             # Public barrel export
+│   └── index.ts             # Barrel export
 ├── api/
-│   └── worker-client.ts     # Typed Cloudflare Worker fetch wrapper
+│   ├── worker-client.ts     # Cloudflare Worker fetch wrapper
+│   └── errors.ts            # Error code → user-readable message map
 ├── components/              # All UI components
 ├── hooks/
-│   └── useDarkMode.ts       # Class-based dark mode + localStorage
+│   ├── useDarkMode.ts       # Class-based dark mode + localStorage
+│   └── useHashRoute.ts      # Hash-based routing (no router library)
 └── types/
     └── index.ts             # Shared TypeScript types
 
 worker/
-├── index.ts                 # Cloudflare Worker (SSRF protection + extraction)
-└── wrangler.toml            # Worker deployment config
+└── index.ts                 # Cloudflare Worker (SSRF protection + HTML extraction)
+
+docs/
+└── QA_CHECKLIST.md          # Full QA checklist for releases
 ```
 
 ---
@@ -102,16 +113,14 @@ npm run dev
 
 Open `http://localhost:5173/MianTrace/`
 
-To enable website analysis locally, deploy the Cloudflare Worker and set:
-
-```bash
-# .env.local
-VITE_WORKER_URL=https://miantrace-worker.your-account.workers.dev
+For website analysis, create `.env.local`:
+```
+VITE_WORKER_URL=https://miantrace.mianhassam96.workers.dev
 ```
 
 ---
 
-## Cloudflare Worker Deployment
+## Worker Deployment
 
 ```bash
 cd worker
@@ -120,62 +129,56 @@ npx wrangler login
 npx wrangler deploy
 ```
 
-After deploying, add `VITE_WORKER_URL` as a GitHub Actions secret:
+After deploying, add `VITE_WORKER_URL` as a GitHub Actions secret:  
 **Settings → Secrets and variables → Actions → New repository secret**
 
 ---
 
-## Deployment
+## Signal Weights (v0.2 calibration)
 
-Automatically deployed to GitHub Pages on every push to `main`:
+| Signal | Weight | Reliability |
+|---|---|---|
+| Transition Patterns | 1.7 | Δ+1.00 (perfect discriminator) |
+| Generic Phrasing | 1.7 | Δ+1.00 (perfect discriminator) |
+| Sentence Uniformity | 1.1 | Δ+0.69 (excellent) |
+| Sentence Openings | 1.0 | Δ+0.43 (good) |
+| Structural Predictability | 1.0 | Δ+0.28 (good) |
+| Vocabulary Variation | 0.8 | Δ+0.09 (weak, reliable for short text) |
+| Paragraph Consistency | 0.6 | Δ+0.14 (weak) |
+| Phrase Repetition | 0.4 | Δ−0.06 (anti-discriminates, reduced weight) |
 
-```
-git push → GitHub Actions → npm ci → npm run build → deploy dist/
-```
-
-Live URL: `https://mianhassam96.github.io/MianTrace/`
+Calibrated using an 8-sample audit dataset. See [Methodology](https://mianhassam96.github.io/MianTrace/#methodology) for detail.
 
 ---
 
 ## Limitations
 
 - MianTrace **cannot prove** whether content was written by a human or AI
-- Results are probabilistic estimates based on writing pattern analysis
-- Very short texts (< 100 words) produce low-confidence results
-- Results may vary for non-English content
+- Short texts (< 100 words) produce low-confidence results
 - Some human writing styles may score high; some AI content may score low
-- Website analysis requires the Cloudflare Worker to be deployed
+- Calibrated primarily on English text
+- Website extraction does not work on JS-rendered, login-required, or crawler-blocked pages
 
 ---
 
-## Security
+## Security (Worker)
 
-- No user content is stored or transmitted to third-party servers (text mode)
-- Website URLs are fetched via Cloudflare Worker with:
-  - SSRF protection (blocks localhost, RFC1918, link-local, CGNAT, internal hostnames)
-  - HTTPS-only enforcement
-  - 2MB response size limit
-  - 10-second timeout
-  - Redirect re-validation
-  - HTML content-type enforcement
-- No API keys or secrets in the frontend bundle
+- SSRF protection: RFC1918, loopback, link-local, CGNAT, IMDS hostnames blocked
+- HTTPS-only enforcement
+- 2MB response size limit
+- 10-second timeout
+- Redirect destination re-validated
+- HTML content-type enforcement
+- URL length limit: 2048 characters
+- `Cache-Control: no-store` on all responses
+- No raw server error messages exposed in responses
+- CORS locked to production origin
 
 ---
 
-## Roadmap
+## QA
 
-- [x] Phase 1 — Foundation (Vite + React + TypeScript + Tailwind)
-- [x] Phase 2 — UI (Header, Hero, Analyzer, Dark mode, Footer)
-- [x] Phase 3 — Statistics Engine
-- [x] Phase 4 — Signal Engine (8 signals)
-- [x] Phase 5+6 — Scoring Model + Results UI
-- [x] Phase 7 — Sentence-Level Analysis
-- [x] Phase 8 — Content Improvement Suggestions
-- [x] Phase 9-12 — Website Analyzer + Cloudflare Worker
-- [x] Phase 13-18 — Polish, SEO, Quality
-- [ ] Phase 19 — Cloudflare Worker deployment
-- [ ] Phase 20 — Production QA
-- [ ] Phase 21 — MVP Launch 🚀
+See [docs/QA_CHECKLIST.md](docs/QA_CHECKLIST.md) for the full release checklist.
 
 ---
 

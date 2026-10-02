@@ -126,7 +126,7 @@ export default function App() {
           {/* ── Analyzer (default) ───────────────────────────────────── */}
           {route === 'analyzer' && (
             <>
-              {!showResults && <Hero/>}
+              {!showResults && <Hero onNavigate={setRoute}/>}
 
           {/* ── Analyzer ─────────────────────────────────────────────── */}
           <section id="analyzer-section" className="px-4 sm:px-5 pb-6" aria-label="Content analyzer">
@@ -211,7 +211,7 @@ export default function App() {
           )}
 
           {/* How It Works */}
-          {!showResults && <HowItWorks/>}
+          {!showResults && <HowItWorks onNavigate={setRoute}/>}
             </>
           )}
         </main>

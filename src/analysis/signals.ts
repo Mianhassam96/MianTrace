@@ -119,8 +119,10 @@ export function signalVocabularyPatterns(stats: FullStatistics): Signal {
     const deficit = floor - ttr
     score = clamp(deficit / 0.15, 0, 1)
   } else if (stats.words < 300) {
-    // Medium text (150–300w): floor calibrated to avoid false positives on human writing
-    // 62% keeps human samples under 25% while still catching AI TTR around 60–61%
+    // Medium text (150–300w): floor=0.62 derived from 8-sample calibration audit;
+    // keeps all human samples ≤25% while still catching AI TTR around 60–61%.
+    // (Original spec said 65%/0.12 but that raised a human sample to 31% — empirical
+    //  calibration data is the ground truth here.)
     const floor = 0.62
     const deficit = floor - ttr
     score = clamp(deficit / 0.10, 0, 1)

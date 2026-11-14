@@ -42,7 +42,8 @@ export function tokenizeSentences(text: string): string[] {
   protected_ = protected_.replace(/\.\.\./g, '\x02')
 
   // Step 4: Split on sentence-ending punctuation followed by whitespace + capital or end
-  const raw = protected_.split(/(?<=[.!?]["'\u201D\u2019]?\s+)(?=[A-Z\u00C0-\u017E])/)
+  // For ! and ?, also split before lowercase letters (unambiguous endings unlike periods)
+  const raw = protected_.split(/(?<=[.]["'\u201D\u2019]?\s+)(?=[A-Z\u00C0-\u017E])|(?<=[!?]["'\u201D\u2019]?\s+)(?=[A-Za-z\u00C0-\u017E])/)
 
   // Step 5: Also handle end-of-string
   const sentences: string[] = []

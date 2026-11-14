@@ -143,6 +143,28 @@ function buildLimitations(wordCount: number, confidence: ConfidenceLevel): strin
  * Returns a complete AnalysisResult ready for the UI.
  */
 export function runSignalEngine(stats: FullStatistics): AnalysisResult {
+  // Very short text: not enough for meaningful analysis
+  if (stats.words < 20) {
+    return {
+      aiLikelihood: 0,
+      confidence: 'low',
+      statistics: {
+        words: stats.words,
+        characters: stats.characters,
+        sentences: stats.sentences,
+        paragraphs: stats.paragraphs,
+        avgSentenceLength: stats.avgSentenceLength,
+        minSentenceLength: stats.minSentenceLength,
+        maxSentenceLength: stats.maxSentenceLength,
+        vocabularyDiversity: stats.vocabularyDiversity,
+      },
+      signals: [],
+      explanation: 'Not enough text to analyze. Paste at least 50 words for a meaningful result.',
+      limitations: 'Results require a minimum amount of text.',
+      sentenceAnalyses: [],
+    }
+  }
+
   // Run all 8 signal detectors
   const signals = ALL_SIGNAL_DETECTORS.map(detector => detector(stats))
 

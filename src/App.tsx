@@ -1,5 +1,4 @@
 import { useMemo, useState } from 'react'
-import './App.css'
 
 import { useDarkMode } from './hooks/useDarkMode'
 import { useHashRoute } from './hooks/useHashRoute'

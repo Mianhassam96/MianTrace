@@ -35,7 +35,7 @@ function tokenizeSentences(text) {
     .replace(/\b([A-Za-z]{1,5})\./g, (m,w) => ABBREV.has(w.toLowerCase()) ? w+'\x00' : m)
     .replace(/(\d)\.(\d)/g, '$1\x01$2')
     .replace(/\.\.\./g, '\x02')
-  const raw = p.split(/(?<=[.!?]["'\u201D\u2019]?\s+)(?=[A-Z\u00C0-\u017E])/)
+  const raw = p.split(/(?<=[.]["'\u201D\u2019]?\s+)(?=[A-Z\u00C0-\u017E])|(?<=[!?]["'\u201D\u2019]?\s+)(?=[A-Za-z\u00C0-\u017E])/)
   const out = []
   for (const chunk of raw)
     for (const sub of chunk.split(/\n+/)) {
@@ -127,17 +127,21 @@ function runSignals(s) {
     out['uniformity'] = { score: 0, detail: `only ${s.sentences} sentences (need ≥6)` }
   }
 
-  // 2. Vocabulary — split by text length (v0.2 calibration)
+  // 2. Vocabulary — split by text length (v0.3 calibration)
   if (s.words >= 30) {
     let score = 0, detail = ''
     if (s.words < 150) {
       const deficit = 0.75 - s.ttr
       score = clamp(deficit/0.15, 0, 1)
       detail = `TTR=${round(s.ttr*100,1)}% (short floor=75%, deficit=${round(deficit*100,1)}pp)`
-    } else {
-      const deficit = 0.45 - s.ttr
+    } else if (s.words < 300) {
+      const deficit = 0.62 - s.ttr
       score = clamp(deficit/0.10, 0, 1)
-      detail = `TTR=${round(s.ttr*100,1)}% (long floor=45%, deficit=${round(deficit*100,1)}pp)`
+      detail = `TTR=${round(s.ttr*100,1)}% (medium floor=62%, deficit=${round(deficit*100,1)}pp)`
+    } else {
+      const deficit = 0.55 - s.ttr
+      score = clamp(deficit/0.12, 0, 1)
+      detail = `TTR=${round(s.ttr*100,1)}% (long floor=55%, deficit=${round(deficit*100,1)}pp)`
     }
     out['vocabulary'] = { score: round(score,3), detail }
   } else {

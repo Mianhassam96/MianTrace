@@ -118,12 +118,17 @@ export function signalVocabularyPatterns(stats: FullStatistics): Signal {
     const floor = 0.75
     const deficit = floor - ttr
     score = clamp(deficit / 0.15, 0, 1)
-  } else {
-    // Long text: only fire if TTR is unusually low
-    // Very low TTR (<0.45) at 150+ words suggests repetitive vocabulary
-    const floor = 0.45
+  } else if (stats.words < 300) {
+    // Medium text (150–300w): floor calibrated to avoid false positives on human writing
+    // 62% keeps human samples under 25% while still catching AI TTR around 60–61%
+    const floor = 0.62
     const deficit = floor - ttr
     score = clamp(deficit / 0.10, 0, 1)
+  } else {
+    // Long text (300+w): floor drops further as TTR naturally converges
+    const floor = 0.55
+    const deficit = floor - ttr
+    score = clamp(deficit / 0.12, 0, 1)
   }
 
   const level = scoreToLevel(score)

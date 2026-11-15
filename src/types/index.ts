@@ -74,3 +74,37 @@ export interface WebsiteContent {
   content: string;
   wordCount: number;
 }
+
+export interface VisibilityDimension {
+  id: string
+  name: string
+  score: number        // 0–100
+  weight: number       // dimension weight
+  level: 'low' | 'medium' | 'high'
+  findings: string[]   // 1–3 evidence sentences
+  recommendation?: string
+}
+
+export interface VisibilityResult {
+  overallScore: number          // 0–100 weighted composite
+  confidence: ConfidenceLevel   // reuse existing type
+  dimensions: VisibilityDimension[]
+  targetTopic?: string
+  explanation: string
+  limitations: string
+}
+
+export interface CombinedResult {
+  writing: AnalysisResult
+  visibility: VisibilityResult
+  sourceMode: 'text' | 'website'
+  websiteData?: {
+    url: string
+    title: string
+    description: string
+    headings: string[]
+    paragraphCount: number
+    wordCount: number
+  }
+  analyzedAt: string
+}

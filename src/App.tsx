@@ -19,9 +19,11 @@ import { FAQPage } from './components/FAQPage'
 import { Footer } from './components/Footer'
 
 import { computeStatistics, runSignalEngine } from './analysis'
+import { runVisibilityEngine } from './analysis/visibility/visibilityEngine'
+import { VisibilityResultsPanel } from './components/visibility/VisibilityResultsPanel'
 import { fetchWebsiteContent } from './api/worker-client'
 import { errorFromException } from './api/errors'
-import type { AnalysisResult, AnalyzerTab } from './types'
+import type { AnalyzerTab, CombinedResult } from './types'
 
 type AppStatus = 'idle' | 'loading' | 'success' | 'error'
 
@@ -40,7 +42,7 @@ export default function App() {
   const [urlContent, setUrlContent]   = useState('')
   const [status, setStatus]           = useState<AppStatus>('idle')
   const [appError, setAppError]        = useState<AppError | null>(null)
-  const [result, setResult]           = useState<AnalysisResult | null>(null)
+  const [result, setResult]           = useState<CombinedResult | null>(null)
 
   // Live statistics
   const textStats = useMemo(
@@ -81,7 +83,14 @@ export default function App() {
       if (isTextTab) {
         await new Promise<void>(r => setTimeout(r, 50))
         const stats = computeStatistics(textContent)
-        setResult({ ...runSignalEngine(stats), sourceMode: 'text' })
+        const writingResult = { ...runSignalEngine(stats), sourceMode: 'text' as const }
+        const visibilityResult = runVisibilityEngine(stats, textContent)
+        setResult({
+          writing: writingResult,
+          visibility: visibilityResult,
+          sourceMode: 'text',
+          analyzedAt: new Date().toISOString(),
+        })
         setStatus('success')
         setTimeout(() => document.getElementById('results-section')?.scrollIntoView({ behavior: 'smooth' }), 100)
       } else {
@@ -94,10 +103,14 @@ export default function App() {
         const { data } = workerResult
         await new Promise<void>(r => setTimeout(r, 50))
         const stats = computeStatistics(data.content)
+        const writingResult2 = { ...runSignalEngine(stats), sourceMode: 'website' as const, websiteData: { url: data.url, title: data.title, description: data.description, headings: data.headings, paragraphCount: data.paragraphCount, wordCount: data.wordCount } }
+        const visibilityResult2 = runVisibilityEngine(stats, data.content, data.headings)
         setResult({
-          ...runSignalEngine(stats),
+          writing: writingResult2,
+          visibility: visibilityResult2,
           sourceMode: 'website',
           websiteData: { url: data.url, title: data.title, description: data.description, headings: data.headings, paragraphCount: data.paragraphCount, wordCount: data.wordCount },
+          analyzedAt: new Date().toISOString(),
         })
         setStatus('success')
         setTimeout(() => document.getElementById('results-section')?.scrollIntoView({ behavior: 'smooth' }), 100)
@@ -204,7 +217,10 @@ export default function App() {
           {showResults && (
             <section id="results-section" className="px-4 sm:px-5 pb-16 scroll-mt-16" aria-label="Analysis results">
               <div className="max-w-2xl mx-auto">
-                <ResultsPanel result={result!} onReset={handleReset}/>
+                <ResultsPanel result={result!.writing} onReset={handleReset}/>
+                <div className="mt-5">
+                  <VisibilityResultsPanel result={result!.visibility}/>
+                </div>
               </div>
             </section>
           )}
@@ -219,7 +235,7 @@ export default function App() {
       </div>
 
       {/* Printable report — sibling of screen UI, shown only @media print */}
-      {showResults && result && <PrintableReport result={result}/>}
+      {showResults && result && <PrintableReport result={result.writing}/>}
     </>
   )
 }

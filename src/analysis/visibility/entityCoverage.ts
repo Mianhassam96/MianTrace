@@ -41,19 +41,17 @@ export function analyzeEntityCoverage(
   const properNouns = wordTokens.filter(w => !sentenceStartWords.has(w.toLowerCase()))
   const properNounCount = properNouns.length
 
-  // 2. Numbers
-  const numberCount = (text.match(/\d+/g) ?? []).length
+  // 2. Numbers — exclude 4-digit years already counted in dateCount
+  const numberCount = (text.match(/\b(?!(?:19|20)\d{2}\b)\d+\b/g) ?? []).length
 
   // 3. Dates: year patterns (19xx/20xx) or month names
   const monthNames = /\b(?:January|February|March|April|May|June|July|August|September|October|November|December)\b/g
   const yearPattern = /\b(?:19|20)\d{2}\b/g
   const dateCount = (text.match(monthNames) ?? []).length + (text.match(yearPattern) ?? []).length
 
-  // 4. Named concepts: words 6+ chars that appear capitalized mid-sentence
-  // (already captured in properNouns with length filter)
-  const namedConceptCount = properNouns.filter(w => w.length >= 6).length
-
-  const totalEntities = properNounCount + numberCount + dateCount + namedConceptCount
+  // totalEntities: properNouns + non-year numbers + dates
+  // namedConceptCount is a subset of properNouns — do NOT add it again
+  const totalEntities = properNounCount + numberCount + dateCount
   const density = stats.words > 0 ? totalEntities / stats.words : 0
 
   // density >= 0.08 scores 100; 0 scores 0

@@ -27,8 +27,8 @@ export function analyzeAnswerability(
   }
 
   const sentences = stats.sentenceList
-  const fullText = sentences.join(' ')
-  const lines = fullText.split(/\n/)
+  // Use the raw text for line-based patterns (sentenceList.join has no newlines)
+  const lines = _text.split(/\n/)
 
   // 1. Definition sentences: "X is ...", "X refers to ..."
   const definitionPattern = /\b\w[\w\s]{0,30}\b(?:is|are|refers to|means|defined as)\b/i

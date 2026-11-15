@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react'
 
-export type Route = 'analyzer' | 'methodology' | 'faq'
+export type Route = 'analyzer' | 'methodology' | 'faq' | 'improve'
 
 function parseHash(): Route {
   const hash = window.location.hash.replace('#', '').toLowerCase()
   if (hash === 'methodology') return 'methodology'
   if (hash === 'faq') return 'faq'
+  if (hash === 'improve') return 'improve'
   return 'analyzer'
 }
 

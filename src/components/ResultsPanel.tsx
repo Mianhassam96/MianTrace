@@ -1,4 +1,4 @@
-import type { AnalysisResult } from '../types'
+import type { AnalysisResult, CombinedResult } from '../types'
 import { ScoreCard } from './ScoreCard'
 import { SignalsPanel } from './SignalsPanel'
 import { ExplanationPanel } from './ExplanationPanel'
@@ -12,10 +12,11 @@ import type { WorkerSuccessResponse } from '../api/worker-client'
 
 interface ResultsPanelProps {
   result: AnalysisResult
+  combined?: CombinedResult   // passed through to Copy/Share buttons for full report
   onReset: () => void
 }
 
-export function ResultsPanel({ result, onReset }: ResultsPanelProps) {
+export function ResultsPanel({ result, combined, onReset }: ResultsPanelProps) {
   function handlePrint() {
     window.print()
   }
@@ -51,7 +52,7 @@ export function ResultsPanel({ result, onReset }: ResultsPanelProps) {
       {/* Actions — full-width stacked on mobile, row on sm+ */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-center gap-2 sm:gap-3 sm:flex-wrap">
         <DownloadPDFButton onPrint={handlePrint}/>
-        <CopyReportButton result={result}/>
+        <CopyReportButton result={result} combinedResult={combined}/>
         <ShareReportButton result={result}/>
 
         {/* Divider between report actions and reset — visual separator on desktop */}

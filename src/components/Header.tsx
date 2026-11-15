@@ -57,6 +57,7 @@ export function Header({ isDark, onToggleDark, route, onNavigate }: HeaderProps)
         {/* Nav */}
         <nav className="flex items-center gap-1" aria-label="Main navigation">
           <NavLink label="Analyzer"    target="analyzer"    current={route} onNavigate={onNavigate}/>
+          <NavLink label="Improve"     target="improve"     current={route} onNavigate={onNavigate}/>
           <NavLink label="Methodology" target="methodology" current={route} onNavigate={onNavigate}/>
           <NavLink label="FAQ"         target="faq"         current={route} onNavigate={onNavigate}/>
 

@@ -1,125 +1,174 @@
 /**
  * report.ts
- * Generates a clean plain-text analysis report from an AnalysisResult.
+ * Generates a clean plain-text analysis report from a CombinedResult or AnalysisResult.
  * Used by the "Copy Report" button — no backend, pure frontend.
  */
 
-import type { AnalysisResult, Signal } from '../types'
+import type { AnalysisResult, CombinedResult, Signal, VisibilityDimension } from '../types'
 
-const LEVEL_LABEL: Record<string, string> = {
-  high:   'High',
-  medium: 'Medium',
-  low:    'Low',
-}
+const LEVEL_LABEL: Record<string, string> = { high: 'High', medium: 'Medium', low: 'Low' }
+const CONF_LABEL: Record<string, string>  = { high: 'High', moderate: 'Moderate', low: 'Low' }
 
-const CONFIDENCE_LABEL: Record<string, string> = {
-  high:     'High',
-  moderate: 'Moderate',
-  low:      'Low',
-}
-
-function divider(char = '─', len = 44): string {
-  return char.repeat(len)
-}
+function divider(char = '─', len = 44): string { return char.repeat(len) }
 
 function signalLine(signal: Signal): string {
   const level = LEVEL_LABEL[signal.level] ?? signal.level
-  const padding = 28 - signal.name.length
-  return `  ${signal.name}${' '.repeat(Math.max(1, padding))}${level}`
+  const pad = 28 - signal.name.length
+  return `  ${signal.name}${' '.repeat(Math.max(1, pad))}${level}`
 }
 
-/**
- * Generate a plain-text report from an AnalysisResult.
- * Suitable for clipboard copy.
- */
+function dimensionLine(d: VisibilityDimension): string {
+  const pad = 26 - d.name.length
+  return `  ${d.name}${' '.repeat(Math.max(1, pad))}${String(d.score).padStart(3)}/100  ${(LEVEL_LABEL[d.level] ?? d.level).toUpperCase()}`
+}
+
+/** Generate report from a CombinedResult (both engines). */
+export function generateCombinedReport(combined: CombinedResult): string {
+  const lines: string[] = []
+  const { writing, visibility } = combined
+
+  lines.push('MianTrace Analysis Report')
+  lines.push(divider())
+  lines.push(`Generated: ${new Date().toLocaleDateString('en-US', {
+    year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit',
+  })}`)
+
+  if (combined.sourceMode === 'website' && combined.websiteData) {
+    lines.push(`Source:    ${combined.websiteData.url}`)
+    if (combined.websiteData.title) lines.push(`Page:      ${combined.websiteData.title}`)
+  }
+
+  lines.push('')
+  lines.push('SCORES')
+  lines.push(divider())
+  lines.push(`AI Writing Analysis:    ${writing.aiLikelihood}%  (${CONF_LABEL[writing.confidence]} confidence)`)
+  lines.push(`Visibility Readiness:   ${visibility.overallScore}/100  (${CONF_LABEL[visibility.confidence]} confidence)`)
+  lines.push('')
+
+  // Writing section
+  lines.push('AI WRITING ANALYSIS')
+  lines.push(divider())
+  lines.push(`Score:      ${writing.aiLikelihood}%`)
+  lines.push(`Confidence: ${CONF_LABEL[writing.confidence] ?? writing.confidence}`)
+  lines.push('')
+  lines.push('CONTENT OVERVIEW')
+  lines.push(divider())
+  const s = writing.statistics
+  lines.push(`Words:        ${s.words.toLocaleString()}`)
+  lines.push(`Characters:   ${s.characters.toLocaleString()}`)
+  lines.push(`Sentences:    ${s.sentences.toLocaleString()}`)
+  lines.push(`Paragraphs:   ${s.paragraphs.toLocaleString()}`)
+  lines.push(`Avg sentence: ${s.avgSentenceLength} words`)
+  lines.push(`Vocabulary:   ${Math.round(s.vocabularyDiversity * 100)}% unique words`)
+  lines.push('')
+  lines.push('WRITING SIGNALS')
+  lines.push(divider())
+  const ordW: Record<string,number> = { high:0, medium:1, low:2 }
+  for (const sig of [...writing.signals].sort((a,b)=>(ordW[a.level]??3)-(ordW[b.level]??3))) {
+    lines.push(signalLine(sig))
+  }
+  lines.push('')
+  const highSigs = writing.signals.filter(s => s.level === 'high')
+  if (highSigs.length > 0) {
+    lines.push('HIGH SIGNALS')
+    lines.push(divider())
+    for (const s of highSigs) {
+      lines.push(`• ${s.name}: ${s.description}`)
+      if (s.suggestion) lines.push(`  → ${s.suggestion}`)
+      lines.push('')
+    }
+  }
+  lines.push('WRITING SUMMARY')
+  lines.push(divider())
+  lines.push(writing.explanation)
+  lines.push('')
+
+  // Visibility section
+  lines.push('AI VISIBILITY READINESS')
+  lines.push(divider())
+  lines.push(`Score:      ${visibility.overallScore}/100`)
+  lines.push(`Confidence: ${CONF_LABEL[visibility.confidence] ?? visibility.confidence}`)
+  lines.push('')
+  lines.push('VISIBILITY DIMENSIONS')
+  lines.push(divider())
+  const ordV: Record<string,number> = { low:0, medium:1, high:2 }
+  for (const d of [...visibility.dimensions].sort((a,b)=>(ordV[a.level]??3)-(ordV[b.level]??3))) {
+    lines.push(dimensionLine(d))
+  }
+  lines.push('')
+  lines.push('VISIBILITY SUMMARY')
+  lines.push(divider())
+  lines.push(visibility.explanation)
+  lines.push('')
+
+  lines.push('IMPORTANT')
+  lines.push(divider())
+  lines.push(
+    'MianTrace provides probabilistic estimates based on writing patterns. ' +
+    'AI writing scores cannot prove authorship. Visibility scores cannot guarantee AI search inclusion.'
+  )
+  lines.push('')
+  lines.push(divider())
+  lines.push('Generated by MianTrace — https://mianhassam96.github.io/MianTrace/')
+
+  return lines.join('\n')
+}
+
+/** Backward-compatible: generate report from writing-only AnalysisResult. */
 export function generateReport(result: AnalysisResult): string {
   const lines: string[] = []
   const { aiLikelihood, confidence, statistics, signals, explanation } = result
 
-  // ── Header ──────────────────────────────────────────────────────────────────
   lines.push('MianTrace Analysis Report')
   lines.push(divider())
   lines.push(`Generated: ${new Date().toLocaleDateString('en-US', {
-    year: 'numeric', month: 'long', day: 'numeric',
-    hour: '2-digit', minute: '2-digit',
+    year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit',
   })}`)
-
-  // Website source line
   if (result.sourceMode === 'website' && result.websiteData) {
     lines.push(`Source: ${result.websiteData.url}`)
-    if (result.websiteData.title) {
-      lines.push(`Page: ${result.websiteData.title}`)
-    }
+    if (result.websiteData.title) lines.push(`Page: ${result.websiteData.title}`)
   }
-
   lines.push('')
-
-  // ── Score ───────────────────────────────────────────────────────────────────
   lines.push('AI-LIKELIHOOD ESTIMATE')
   lines.push(divider())
   lines.push(`Score:      ${aiLikelihood}%`)
-  lines.push(`Confidence: ${CONFIDENCE_LABEL[confidence] ?? confidence}`)
+  lines.push(`Confidence: ${CONF_LABEL[confidence] ?? confidence}`)
   lines.push('')
-
-  // ── Content overview ─────────────────────────────────────────────────────────
   lines.push('CONTENT OVERVIEW')
   lines.push(divider())
-  lines.push(`Words:          ${statistics.words.toLocaleString()}`)
-  lines.push(`Characters:     ${statistics.characters.toLocaleString()}`)
-  lines.push(`Sentences:      ${statistics.sentences.toLocaleString()}`)
-  lines.push(`Paragraphs:     ${statistics.paragraphs.toLocaleString()}`)
-  lines.push(`Avg sentence:   ${statistics.avgSentenceLength} words`)
-  lines.push(`Vocabulary:     ${Math.round(statistics.vocabularyDiversity * 100)}% unique words`)
+  lines.push(`Words:        ${statistics.words.toLocaleString()}`)
+  lines.push(`Characters:   ${statistics.characters.toLocaleString()}`)
+  lines.push(`Sentences:    ${statistics.sentences.toLocaleString()}`)
+  lines.push(`Paragraphs:   ${statistics.paragraphs.toLocaleString()}`)
   lines.push('')
-
-  // ── Signals ─────────────────────────────────────────────────────────────────
   lines.push('WRITING SIGNALS')
   lines.push(divider())
-
-  // Sort: high → medium → low
-  const order: Record<string, number> = { high: 0, medium: 1, low: 2 }
-  const sorted = [...signals].sort((a, b) => (order[a.level] ?? 3) - (order[b.level] ?? 3))
-
-  for (const signal of sorted) {
-    lines.push(signalLine(signal))
+  const ord: Record<string,number> = { high:0, medium:1, low:2 }
+  for (const sig of [...signals].sort((a,b)=>(ord[a.level]??3)-(ord[b.level]??3))) {
+    lines.push(signalLine(sig))
   }
   lines.push('')
-
-  // ── Key finding ─────────────────────────────────────────────────────────────
-  const highSignals = signals.filter(s => s.level === 'high')
-  if (highSignals.length > 0) {
+  const high = signals.filter(s => s.level === 'high')
+  if (high.length > 0) {
     lines.push('HIGH SIGNALS DETECTED')
     lines.push(divider())
-    for (const s of highSignals) {
+    for (const s of high) {
       lines.push(`• ${s.name}`)
       lines.push(`  ${s.description}`)
-      if (s.suggestion) {
-        lines.push(`  Suggestion: ${s.suggestion}`)
-      }
+      if (s.suggestion) lines.push(`  Suggestion: ${s.suggestion}`)
       lines.push('')
     }
   }
-
-  // ── Summary ──────────────────────────────────────────────────────────────────
   lines.push('SUMMARY')
   lines.push(divider())
   lines.push(explanation)
   lines.push('')
-
-  // ── Limitation ──────────────────────────────────────────────────────────────
   lines.push('IMPORTANT')
   lines.push(divider())
-  lines.push(
-    'MianTrace provides a probabilistic analysis based on writing patterns. ' +
-    'It cannot prove whether content was written by a human or generated by AI. ' +
-    'Results are estimates, not proof of authorship.'
-  )
+  lines.push('MianTrace provides a probabilistic analysis. Results are estimates, not proof of authorship.')
   lines.push('')
-
-  // ── Footer ───────────────────────────────────────────────────────────────────
-  lines.push(divider('─', 44))
-  lines.push('Generated by MianTrace')
-  lines.push('https://mianhassam96.github.io/MianTrace/')
+  lines.push(divider())
+  lines.push('Generated by MianTrace — https://mianhassam96.github.io/MianTrace/')
 
   return lines.join('\n')
 }

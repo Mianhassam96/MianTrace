@@ -11,11 +11,13 @@ import { AnalyzeButton } from './components/AnalyzeButton'
 import { AnalysisProgress } from './components/AnalysisProgress'
 import { ErrorState } from './components/ErrorState'
 import { StatsBar } from './components/StatsBar'
+import { CombinedResultsHeader } from './components/CombinedResultsHeader'
 import { ResultsPanel } from './components/ResultsPanel'
 import { PrintableReport } from './components/PrintableReport'
 import { HowItWorks } from './components/HowItWorks'
 import { MethodologyPage } from './components/MethodologyPage'
 import { FAQPage } from './components/FAQPage'
+import { ImprovementLab } from './components/ImprovementLab'
 import { Footer } from './components/Footer'
 
 import { computeStatistics, runSignalEngine } from './analysis'
@@ -135,6 +137,9 @@ export default function App() {
           {/* ── FAQ page ─────────────────────────────────────────────── */}
           {route === 'faq' && <FAQPage/>}
 
+          {/* ── Improvement Lab ──────────────────────────────────────── */}
+          {route === 'improve' && <ImprovementLab/>}
+
           {/* ── Analyzer (default) ───────────────────────────────────── */}
           {route === 'analyzer' && (
             <>
@@ -217,7 +222,10 @@ export default function App() {
           {showResults && (
             <section id="results-section" className="px-4 sm:px-5 pb-16 scroll-mt-16" aria-label="Analysis results">
               <div className="max-w-2xl mx-auto">
-                <ResultsPanel result={result!.writing} onReset={handleReset}/>
+                <CombinedResultsHeader result={result!}/>
+                <div className="mt-5">
+                  <ResultsPanel result={result!.writing} combined={result!} onReset={handleReset}/>
+                </div>
                 <div className="mt-5">
                   <VisibilityResultsPanel result={result!.visibility}/>
                 </div>

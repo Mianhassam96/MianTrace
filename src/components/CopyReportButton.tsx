@@ -1,14 +1,15 @@
 import { useState } from 'react'
-import type { AnalysisResult } from '../types'
-import { generateReport } from '../analysis/report'
+import type { AnalysisResult, CombinedResult } from '../types'
+import { generateReport, generateCombinedReport } from '../analysis/report'
 
 interface CopyReportButtonProps {
   result: AnalysisResult
+  combinedResult?: CombinedResult
 }
 
 type CopyState = 'idle' | 'copying' | 'copied' | 'error'
 
-export function CopyReportButton({ result }: CopyReportButtonProps) {
+export function CopyReportButton({ result, combinedResult }: CopyReportButtonProps) {
   const [state, setState] = useState<CopyState>('idle')
 
   async function handleCopy() {
@@ -16,7 +17,7 @@ export function CopyReportButton({ result }: CopyReportButtonProps) {
 
     setState('copying')
     try {
-      const report = generateReport(result)
+      const report = combinedResult ? generateCombinedReport(combinedResult) : generateReport(result)
       await navigator.clipboard.writeText(report)
       setState('copied')
       // Reset after 2.5s
@@ -24,7 +25,7 @@ export function CopyReportButton({ result }: CopyReportButtonProps) {
     } catch {
       // Clipboard API unavailable — try execCommand fallback
       try {
-        const report = generateReport(result)
+        const report = combinedResult ? generateCombinedReport(combinedResult) : generateReport(result)
         const textarea = document.createElement('textarea')
         textarea.value = report
         textarea.style.position = 'fixed'

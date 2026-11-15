@@ -1,0 +1,10 @@
+{
+  "verdict": "CHANGES_REQUESTED",
+  "findings": [
+    "Entity density double-count — namedConceptCount is a subset of properNounCount and both are summed into totalEntities, inflating entity density for any proper noun longer than 5 characters. Remove namedConceptCount from totalEntities, or replace properNounCount with namedConceptCount in the sum to target only significant named entities.",
+    "Answerability newline-split on joined sentences — sentences.join(' ') produces a string with no newlines, so splitting on \\n yields a single element, making questionCount and listLineCount always 0 for text-tab input. Split the original rawText on newlines instead, or pass rawText through the second parameter (currently ignored as _text) for question/list detection.",
+    "Engine comment weight annotation is wrong — The comment '// weights: 20+20+15+15+15+10+5 = 100' in visibilityEngine.ts has 15 in the specificity position, but specificityAnalysis.ts declares weight = 10. The runtime is correct; the comment should read 20+20+15+15+15+10+5 with structureAnalysis at 15 and specificityAnalysis at 10, matching the analyzer call order.",
+    "Dead top-level fields on CombinedResult — CombinedResult.sourceMode and CombinedResult.websiteData are never read after the diff; both values are already accessible via result.writing.sourceMode and result.writing.websiteData. Removing them eliminates the risk of the two copies silently diverging in a future change."
+  ],
+  "reviewDoc": "f:\\Web dev\\Github and Git\\Upload\\MianTrace\\.agents\\tasks\\phase2-visibility\\review.md"
+}

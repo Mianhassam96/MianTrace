@@ -16,6 +16,7 @@ export interface WorkerSuccessResponse {
   content: string
   wordCount: number
   headings: string[]
+  headingHierarchy: { level: number; text: string }[]
   paragraphCount: number
 }
 

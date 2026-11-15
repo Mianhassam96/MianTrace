@@ -243,7 +243,7 @@ export default function App() {
       </div>
 
       {/* Printable report — sibling of screen UI, shown only @media print */}
-      {showResults && result && <PrintableReport result={result.writing}/>}
+      {showResults && result && <PrintableReport result={result}/>}
     </>
   )
 }

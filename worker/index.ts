@@ -24,6 +24,7 @@ interface WorkerResponse {
   content: string
   wordCount: number
   headings: string[]
+  headingHierarchy: { level: number; text: string }[]
   paragraphCount: number
 }
 
@@ -118,12 +119,17 @@ async function extractContent(html: string, baseUrl: string): Promise<WorkerResp
     .replace(/<input[^>]*\/?>/gi, ' ')
     .replace(/<select[^>]*>[\s\S]*?<\/select>/gi, ' ')
 
-  // Extract headings
-  const headingMatches = cleaned.matchAll(/<h[1-6][^>]*>([\s\S]*?)<\/h[1-6]>/gi)
+  // Extract headings with level info
+  const headingMatches = cleaned.matchAll(/<h([1-6])[^>]*>([\s\S]*?)<\/h[1-6]>/gi)
   const headings: string[] = []
+  const headingHierarchy: { level: number; text: string }[] = []
   for (const match of headingMatches) {
-    const text = stripTags(match[1]).trim()
-    if (text.length > 0 && text.length < 200) headings.push(text)
+    const level = parseInt(match[1], 10)
+    const text = stripTags(match[2]).trim()
+    if (text.length > 0 && text.length < 200) {
+      headings.push(text)
+      headingHierarchy.push({ level, text })
+    }
     if (headings.length >= 20) break
   }
 
@@ -160,6 +166,7 @@ async function extractContent(html: string, baseUrl: string): Promise<WorkerResp
     content,
     wordCount,
     headings,
+    headingHierarchy,
     paragraphCount: contentParts.length,
   }
 }

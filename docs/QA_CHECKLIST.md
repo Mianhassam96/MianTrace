@@ -209,3 +209,46 @@ Mark each item ✅ Pass, ❌ Fail, or ⚠️ Partial.
 **QA completed by:** _______________  
 **Date:** _______________  
 **Build/commit:** _______________
+
+---
+
+## 14. AI Visibility Readiness Engine
+
+| # | Test | Expected | Result |
+|---|------|----------|--------|
+| 14.1 | Run any text analysis | Visibility Readiness panel appears below Writing Analysis | |
+| 14.2 | Visibility score 0–100 | Renders correctly with color (green ≥70, amber ≥40, red <40) | |
+| 14.3 | 7 dimensions visible | All 7 rows shown with score bars and level badges | |
+| 14.4 | Dimension expandable | Click shows findings + recommendation | |
+| 14.5 | Confidence badge | Shows low/moderate/high correctly | |
+| 14.6 | Short text (<50 words) | Confidence shows 'low' | |
+| 14.7 | Deterministic | Same text = same visibility score every time | |
+
+---
+
+## 15. Combined Results Dashboard
+
+| # | Test | Expected | Result |
+|---|------|----------|--------|
+| 15.1 | CombinedResultsHeader shown | Both scores side by side at top | |
+| 15.2 | Timestamp shown | Shows analysis date/time | |
+| 15.3 | Website URL shown in header | For website analyses | |
+| 15.4 | Copy Report includes both engines | Both writing signals and visibility dimensions in copied text | |
+| 15.5 | PDF includes both engines | Print preview shows both score rings and dimension table | |
+
+---
+
+## 16. Content Improvement Lab (#improve)
+
+| # | Test | Expected | Result |
+|---|------|----------|--------|
+| 16.1 | Navigate to Improve | Lab page loads | |
+| 16.2 | Paste in Original panel | Scores appear for original | |
+| 16.3 | Edited panel pre-filled | Edited starts as copy of original | |
+| 16.4 | Edit text | Edited scores update live as typing | |
+| 16.5 | Delta banner appears | Shows +/- change per score | |
+| 16.6 | Positive writing delta | Red color (higher AI score = worse) | |
+| 16.7 | Positive visibility delta | Green color (higher visibility = better) | |
+| 16.8 | Reset button | Copies original back to edited panel | |
+| 16.9 | Mobile layout | Panels stack vertically | |
+| 16.10 | Desktop layout | Panels side by side | |

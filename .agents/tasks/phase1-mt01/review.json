@@ -1,0 +1,7 @@
+{
+  "verdict": "CHANGES_REQUESTED",
+  "findings": [
+    "Medium-tier vocabulary floor deviates from spec — The task specifies floor=65%/0.12 for the 150–300 word tier; the code ships floor=0.62/0.10. The deviation is intentional and documented, but the spec has not been formally updated to reflect the empirical calibration decision. Either update the spec to floor=0.62/0.10 and close the gap, or accept 0.65/0.12 and re-run the audit to verify the FORMAL HUMAN sample stays ≤25%."
+  ],
+  "reviewDoc": "f:\\Web dev\\Github and Git\\Upload\\MianTrace\\.agents\\tasks\\phase1-mt01\\review.md"
+}
